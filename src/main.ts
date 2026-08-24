@@ -1,17 +1,22 @@
 import express, { Request, request, Response } from "express"
 import { User } from "./types/user"
+import { AuthController } from "./controller/auth"
 
 
 const app = express()
 
 app.use(express.json())
 
-const users = new Map<string,User>()
+const authRoutes = new AuthController()
 
-app.get("/", (req:Request, res:Response) =>{
+export const users = new Map<string, User>()
+
+app.get("/", (req: Request, res: Response) => {
     res.send("page/")
 })
 
-app.post("/login")
+app.post("/register", authRoutes.register)
 
-app.listen(3000,() =>{ console.log("system running in port http://localhost:3000")})
+app.post("/login", authRoutes.login)
+
+app.listen(3000, () => { console.log("system running in port http://localhost:3000") })
