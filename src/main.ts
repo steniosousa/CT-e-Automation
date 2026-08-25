@@ -1,22 +1,22 @@
-import express, { Request, request, Response } from "express"
-import { User } from "./types/user"
-import { AuthController } from "./controller/auth"
+import express, { type Request, type Response } from "express";
+import { AuthController } from "./controller/auth.js";
+import { IsLogged } from "./middleware/isLogged.js";
+import "./validadeEnv.js";
+import { AuthService } from "./service/auth.js";
+const authService = new AuthService();
+const authRoutes = new AuthController(authService);
+const app = express();
 
+app.use(express.json());
 
-const app = express()
+app.post("/register", (req, res) => authRoutes.register(req, res));
 
-app.use(express.json())
+app.post("/login", (req, res) => authRoutes.login(req, res));
 
-const authRoutes = new AuthController()
+app.get("/admin", IsLogged, (req: Request, res: Response) => {
+  res.send("AUTHORIZED");
+});
 
-export const users = new Map<string, User>()
-
-app.get("/", (req: Request, res: Response) => {
-    res.send("page/")
-})
-
-app.post("/register", authRoutes.register)
-
-app.post("/login", authRoutes.login)
-
-app.listen(3000, () => { console.log("system running in port http://localhost:3000") })
+app.listen(3000, () => {
+  console.log("system running in port http://localhost:3000");
+});
