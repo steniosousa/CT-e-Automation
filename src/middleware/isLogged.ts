@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import jsonwebtoken from "jsonwebtoken";
 import type { jwtPayload } from "../types/user.js";
-import { env } from "../validadeEnv.js";
+import { env } from "../env.js";
 
 export function IsLogged(req: Request, res: Response, next: NextFunction) {
   const { authorization } = req.headers;

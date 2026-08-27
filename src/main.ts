@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { AuthController } from "./controller/auth.js";
 import { IsLogged } from "./middleware/isLogged.js";
-import "./validadeEnv.js";
+import "./env.js";
 import { AuthService } from "./service/auth.js";
 import { CompanyController } from "./controller/company.js";
 import multer from "multer";
@@ -32,6 +32,12 @@ app.post(
   IsLogged,
   async (req, res) => await cte.create(req, res),
 );
+
+app.post("/admin/xml",
+  upload.single("file"),
+  IsLogged,
+  async(req,res) => await cte.xml(req,res)
+)
 
 app.listen(3000, () => {
   console.log("system running in port http://localhost:3000");

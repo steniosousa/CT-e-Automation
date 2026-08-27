@@ -1,7 +1,7 @@
 import JsonWebToken from "jsonwebtoken";
 import { read, save } from "../database/connection.js";
 import bcrypt from "bcrypt";
-import { env } from "../validadeEnv.js";
+import { env } from "../env.js";
 
 export class AuthService {
   async register(email: string, password: string) {
