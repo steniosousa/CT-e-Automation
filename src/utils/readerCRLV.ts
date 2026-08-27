@@ -1,0 +1,125 @@
+import { PDFParse } from "pdf-parse";
+
+function extractPeso(texto: string): string {
+  const peso = texto.split("/****")[1]?.trim().split("\n")[0];
+
+  if (peso) {
+    return (Number(peso) * 1000).toString();
+  }
+
+  const linhas2 = texto
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const idxPotencia = linhas2.findIndex((l) => /\d+CV\/\d+/i.test(l));
+
+  if (idxPotencia !== -1) {
+    const pesoFallback = linhas2[idxPotencia + 1];
+
+    if (!pesoFallback) {
+      return "";
+    }
+
+    if (/^\d+(\.\d+)?$/.test(pesoFallback)) {
+      return String(Number(pesoFallback) * 1000);
+    }
+  }
+
+  return "";
+}
+
+function extractCapacidade(texto: string): string {
+  const capacidade = texto.split('ALUGUEL')[1]?.trim().split('\n')[0];
+  if(capacidade === "*.*"){
+    return capacidade
+  }
+  return capacidade ? (Number(capacidade) * 1000).toFixed(2).toString() : '';
+}
+
+export async function ReaderCRLV(buffer: Buffer) {
+  const reader = new PDFParse({ data: buffer });
+  const text = await reader.getText();
+  const textWithSplit = text.text;
+  if (!textWithSplit) return;
+
+  const TIPOS_CARROCERIA = [
+    "CARROCERIA ABERTA",
+    "CABINE ESTENDIDA",
+    "CARROCERIA FECHADA",
+    "BASCULANTE",
+    "DOLLY",
+    "NãO APLICAVEL",
+  ];
+
+  const regexs = [
+    { name: "renavam", pattern: /^\d{11}$/m },
+    { name: "placa", pattern: /[A-Z]{3}\d[A-Z]\d{2}/ },
+    {
+      name: "cpfCnpj",
+      pattern: /\d{3}\.\d{3}\.\d{3}-\d{2}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/,
+    },
+    {
+      name: "local",
+      pattern:
+        /\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\b/,
+    },
+  ] as { name: string; pattern: RegExp }[];
+
+  const eixosRegex = / (\d) /;
+  const eixos = textWithSplit.match(eixosRegex)?.[1];
+
+  const modelo = textWithSplit
+    .split("\n")
+    .map((l) => l.trim())
+    .find(
+      (l) =>
+        /^[A-Z0-9.\s]+\/[A-Z0-9]/i.test(l) && /[A-Z]/i.test(l) && l.length > 5,
+    );
+
+  let carroceria;
+  TIPOS_CARROCERIA.map((tipo, i) => {
+    if (textWithSplit.includes(tipo)) {
+      return (carroceria = tipo);
+    }
+  });
+
+  const datas = regexs.map(({ name, pattern }) => ({
+    campo: name,
+    valor: pattern.exec(textWithSplit)?.[0],
+  }));
+
+  if (carroceria) {
+    datas.push({ campo: "Carroceria", valor: carroceria });
+  }
+
+  if (eixos) {
+    datas.push({ campo: "Eixos", valor: eixos });
+  }
+
+  if (modelo) {
+    datas.push({ campo: "Modelo", valor: modelo });
+  }
+  const cpfCnpj = datas.find((data) => data.campo === "cpfCnpj");
+
+  if (carroceria && cpfCnpj?.valor) {
+    const dono = textWithSplit
+      .split(carroceria)[1]
+      ?.split(cpfCnpj.valor)[0]
+      ?.replaceAll("\n", "");
+
+    if (dono) {
+      datas.push({ campo: "Dono", valor: dono });
+    }
+  }
+  const peso = extractPeso(textWithSplit);
+  if (peso) {
+    datas.push({ campo: "Peso", valor: peso });
+  }
+
+  const capacidade = extractCapacidade(textWithSplit)
+  if(capacidade){
+    datas.push({campo:"Capacidade", valor:capacidade})
+  }
+
+  return datas;
+}
