@@ -4,6 +4,7 @@ import type { AuthService } from "../service/auth.js";
 
 export class AuthController {
   constructor(private readonly service: AuthService) {}
+
   async login(req: Request, res: Response) {
     const validade = loginDTO.safeParse(req.body);
 
