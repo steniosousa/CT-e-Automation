@@ -28,7 +28,7 @@ export class DriverService {
       driverData.cpfCnpj,
     );
     if (alrerdyExist.length > 0) {
-      throw new Error("Motorista já cadastrado");
+      throw new Error("Usuário já cadastrado");
     }
     const convertToCnpj = convertToCpfCnpj(driverData.cpfCnpj);
 
@@ -46,7 +46,7 @@ export class DriverService {
       return data;
     } catch (error) {
       console.log(error);
-      throw new Error("Erro ao registrar motorista", { cause: error });
+      throw new Error("Erro ao registrar Usuário", { cause: error });
     }
   }
 }

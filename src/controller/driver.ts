@@ -4,6 +4,7 @@ import { userSchema } from "../DTO/user.js";
 
 export class DriverController {
   constructor(private service: DriverService) {}
+ 
   async registerDriver(req: Request, res: Response) {
     try {
       const validade = userSchema.safeParse(req.body);
@@ -23,7 +24,7 @@ export class DriverController {
         cpfCnpj,
         rntc,
       });
-      res.status(201).json({ message: "Motorista registrado com sucesso" });
+      res.status(201).json({ message: "Usuário registrado com sucesso" });
     } catch (error: any) {
       console.log(error.message);
       res.status(500).json({ message: error.message });

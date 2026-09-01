@@ -45,13 +45,13 @@ app.post(
 );
 
 app.post(
-  "/admin/driver",
+  "/admin/user",
   IsLogged,
   async (req, res) => await driver.registerDriver(req, res),
 );
 
 app.get(
-  "/admin/driver",
+  "/admin/truck",
   IsLogged,
   async (req, res) => await driver.driverExist(req, res),
 );
