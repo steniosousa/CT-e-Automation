@@ -9,4 +9,5 @@ export class CompanyController {
     // res.json({ data });
     res.send("AUTHORIZED");
   }
+
 }
